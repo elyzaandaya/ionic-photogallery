@@ -1,5 +1,4 @@
-```yaml
-name: Build Ionic Photo Gallery Android APK
+﻿name: Build Ionic Photo Gallery Android APK
 
 on:
   push:
@@ -48,4 +47,3 @@ jobs:
         with:
           name: IonicPhotogallery-APK
           path: IonicPhotogallery.apk
-```
