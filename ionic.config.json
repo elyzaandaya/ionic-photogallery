@@ -1,0 +1,7 @@
+{
+  "name": "photogallery-new",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
