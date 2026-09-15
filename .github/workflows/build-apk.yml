@@ -15,16 +15,16 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 24
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
 
-      - name: Install npm dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Build Ionic Vue application
+      - name: Build Ionic app
         run: npm run build
 
       - name: Set up Java 21
@@ -33,31 +33,17 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Check Java environment
-        run: |
-          java -version
-          javac -version
-
-      - name: Check Android SDK
-        run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          ls "$ANDROID_HOME"
-
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      - name: Check Gradle version
-        working-directory: android
-        run: ./gradlew --version
-
-      - name: Build Android debug APK
+      - name: Build Android APK
         working-directory: android
         run: ./gradlew --no-daemon assembleDebug
 
       - name: Rename APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk IonicPhotogallery.apk
 
-      - name: Upload Ionic Photo Gallery APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: IonicPhotogallery-APK
