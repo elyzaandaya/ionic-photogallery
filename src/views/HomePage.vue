@@ -1,173 +1,421 @@
-```vue
 <template>
   <ion-page>
+    <!-- HEADER -->
     <ion-header>
-      <ion-toolbar color="primary">
-        <ion-title>📸 Photo Gallery</ion-title>
+      <ion-toolbar class="pink-toolbar">
+        <ion-title>My Photo Gallery</ion-title>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="gallery-content">
-      <div class="welcome-section">
-        <h1>My Photo Gallery</h1>
-        <p>Capture and keep your favorite memories.</p>
+    <ion-content class="page-content">
+
+      <!-- CAMERA SECTION -->
+      <div class="camera-section">
+        <h2>Camera</h2>
+
+        <ion-button
+          expand="block"
+          class="take-picture-button"
+          @click="takePicture"
+        >
+          <ion-icon
+            slot="start"
+            :icon="cameraIcon"
+          ></ion-icon>
+
+          TAKE PICTURE
+        </ion-button>
+
+        <!-- Error message -->
+        <p v-if="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </p>
       </div>
 
-      <div class="gallery-grid">
-        <div
-          v-for="photo in photos"
-          :key="photo.id"
-          class="photo-card"
-        >
-          <img :src="photo.url" :alt="photo.title" />
 
-          <div class="photo-info">
-            <strong>{{ photo.title }}</strong>
-            <span>{{ photo.date }}</span>
+      <!-- PHOTO GALLERY -->
+      <div class="gallery-section">
+
+        <div class="gallery-title">
+          Photo Gallery
+        </div>
+
+        <!-- EMPTY GALLERY -->
+        <div
+          v-if="photos.length === 0"
+          class="empty-gallery"
+        >
+          <div class="camera-symbol">
+            📷
+          </div>
+
+          <p>No photos yet.</p>
+
+          <span>
+            Take a picture using the camera.
+          </span>
+        </div>
+
+
+        <!-- PHOTOS -->
+        <div
+          v-else
+          class="photo-grid"
+        >
+          <div
+            v-for="(photo, index) in photos"
+            :key="index"
+            class="photo-card"
+          >
+            <img
+              :src="photo"
+              alt="Captured photo"
+            />
+
+            <p>Photo {{ index + 1 }}</p>
           </div>
         </div>
+
       </div>
 
-      <div v-if="photos.length === 0" class="empty-gallery">
-        <div class="empty-icon">📷</div>
-        <h2>No Photos Yet</h2>
-        <p>Your photos will appear here.</p>
-      </div>
     </ion-content>
-
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button color="primary" @click="addPhoto">
-        <ion-icon :icon="add"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
   </ion-page>
 </template>
 
+
 <script setup lang="ts">
+
+import { ref } from 'vue';
+
 import {
-  IonContent,
-  IonHeader,
   IonPage,
-  IonTitle,
+  IonHeader,
   IonToolbar,
-  IonFab,
-  IonFabButton,
+  IonTitle,
+  IonContent,
+  IonButton,
   IonIcon
 } from '@ionic/vue';
 
-import { add } from 'ionicons/icons';
-import { ref } from 'vue';
+import { camera as cameraIcon } from 'ionicons/icons';
 
-const photos = ref([
-  {
-    id: 1,
-    title: 'Nature',
-    date: 'September 15, 2026',
-    url: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: 2,
-    title: 'Mountain',
-    date: 'September 15, 2026',
-    url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: 3,
-    title: 'Beach',
-    date: 'September 15, 2026',
-    url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: 4,
-    title: 'Sunset',
-    date: 'September 15, 2026',
-    url: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=800&q=80'
+import {
+  Camera,
+  CameraResultType,
+  CameraSource
+} from '@capacitor/camera';
+
+
+// Store captured photos
+const photos = ref<string[]>([]);
+
+
+// Error message
+const errorMessage = ref('');
+
+
+// TAKE PICTURE
+const takePicture = async () => {
+
+  try {
+
+    // Clear previous error
+    errorMessage.value = '';
+
+    // Open the PHONE CAMERA
+    const image = await Camera.getPhoto({
+
+      quality: 90,
+
+      allowEditing: false,
+
+      resultType: CameraResultType.DataUrl,
+
+      source: CameraSource.Camera
+
+    });
+
+
+    // Add captured photo to gallery
+    if (image.dataUrl) {
+
+      photos.value.push(image.dataUrl);
+
+    }
+
+  } catch (error: any) {
+
+    console.log('Camera error:', error);
+
+    // Don't show an error if user simply cancelled the camera
+    if (
+      error?.message &&
+      !error.message.toLowerCase().includes('cancel')
+    ) {
+
+      errorMessage.value =
+        'Unable to open the camera. Please check the camera permission.';
+
+    }
+
   }
-]);
 
-const addPhoto = () => {
-  alert('Photo Gallery is ready! The Add Photo feature can be connected to the device camera next.');
 };
+
 </script>
 
+
 <style scoped>
-.gallery-content {
-  --background: #f4f6f8;
+
+/* ============================= */
+/* MAIN PAGE */
+/* ============================= */
+
+.page-content {
+  --background: #fff5fa;
 }
 
-.welcome-section {
-  text-align: center;
-  padding: 28px 20px 18px;
+
+/* ============================= */
+/* HEADER */
+/* ============================= */
+
+.pink-toolbar {
+  --background: #ff69b4;
+  --color: white;
 }
 
-.welcome-section h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
+ion-title {
+  font-size: 20px;
   font-weight: 700;
 }
 
-.welcome-section p {
+
+/* ============================= */
+/* CAMERA SECTION */
+/* ============================= */
+
+.camera-section {
+  padding: 24px 20px 15px;
+}
+
+.camera-section h2 {
+  margin: 0 0 12px;
+
+  font-size: 18px;
+
+  font-weight: 700;
+
+  color: #d63384;
+}
+
+
+/* ============================= */
+/* TAKE PICTURE BUTTON */
+/* ============================= */
+
+.take-picture-button {
+
+  --background: #ff69b4;
+
+  --background-hover: #ff4fa3;
+
+  --background-activated: #e7549f;
+
+  --color: white;
+
+  --border-radius: 8px;
+
+  height: 46px;
+
   margin: 0;
-  color: #666;
-  font-size: 15px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.5px;
+
 }
 
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-  padding: 10px 16px 90px;
+
+/* ============================= */
+/* ERROR MESSAGE */
+/* ============================= */
+
+.error-message {
+
+  margin-top: 10px;
+
+  text-align: center;
+
+  color: #d63384;
+
+  font-size: 13px;
+
 }
 
-.photo-card {
+
+/* ============================= */
+/* GALLERY CONTAINER */
+/* ============================= */
+
+.gallery-section {
+
+  margin: 12px 20px;
+
   background: white;
-  border-radius: 16px;
+
+  border: 2px solid #ffb6d9;
+
+  border-radius: 10px;
+
+  min-height: 320px;
+
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+  box-shadow:
+    0 3px 10px
+    rgba(255, 105, 180, 0.12);
+
 }
 
-.photo-card img {
-  display: block;
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
+
+/* ============================= */
+/* GALLERY TITLE */
+/* ============================= */
+
+.gallery-title {
+
+  padding: 15px;
+
+  font-size: 18px;
+
+  font-weight: 700;
+
+  color: #d63384;
+
+  background: #ffe1ef;
+
+  border-bottom: 2px solid #ffb6d9;
+
 }
 
-.photo-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px;
-}
 
-.photo-info strong {
-  font-size: 16px;
-  color: #222;
-}
-
-.photo-info span {
-  font-size: 12px;
-  color: #777;
-}
+/* ============================= */
+/* EMPTY GALLERY */
+/* ============================= */
 
 .empty-gallery {
+
   text-align: center;
-  padding: 80px 20px;
-  color: #777;
+
+  padding: 70px 20px;
+
 }
 
-.empty-icon {
-  font-size: 60px;
-  margin-bottom: 15px;
+
+/* Camera icon */
+
+.camera-symbol {
+
+  font-size: 45px;
+
+  margin-bottom: 12px;
+
 }
 
-.empty-gallery h2 {
-  color: #333;
-  margin-bottom: 8px;
-}
+
+/* No photos text */
 
 .empty-gallery p {
-  margin: 0;
+
+  margin: 0 0 8px;
+
+  font-size: 17px;
+
+  font-weight: 600;
+
+  color: #d63384;
+
 }
+
+
+/* Instruction */
+
+.empty-gallery span {
+
+  font-size: 14px;
+
+  color: #999;
+
+}
+
+
+/* ============================= */
+/* PHOTO GRID */
+/* ============================= */
+
+.photo-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap: 12px;
+
+  padding: 12px;
+
+}
+
+
+/* ============================= */
+/* PHOTO CARD */
+/* ============================= */
+
+.photo-card {
+
+  background: #fff5fa;
+
+  border: 2px solid #ffb6d9;
+
+  border-radius: 8px;
+
+  overflow: hidden;
+
+}
+
+
+/* Captured image */
+
+.photo-card img {
+
+  display: block;
+
+  width: 100%;
+
+  height: 180px;
+
+  object-fit: cover;
+
+}
+
+
+/* Photo number */
+
+.photo-card p {
+
+  margin: 0;
+
+  padding: 8px;
+
+  text-align: center;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: #d63384;
+
+}
+
 </style>
-```
